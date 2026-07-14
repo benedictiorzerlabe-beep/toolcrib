@@ -6,6 +6,9 @@
 <title>ToolCrib — Find My Things</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -21,14 +24,16 @@
   header{padding:16px 16px 10px; display:flex; align-items:center; gap:10px;}
   .logo{width:34px;height:34px;border-radius:8px;background:var(--ink);
     display:flex;align-items:center;justify-content:center;color:var(--amber);
-    font-family:'Archivo';font-weight:900;font-size:17px;}
+    font-family:'Archivo';font-weight:900;font-size:17px;flex-shrink:0;}
   header h1{font-size:19px;font-weight:900;margin:0;letter-spacing:-0.3px;}
   header .sub{font-size:11.5px;color:var(--steel);letter-spacing:1.4px;text-transform:uppercase;}
+  #syncdot{margin-left:auto;font-size:11px;color:var(--steel);display:flex;align-items:center;gap:5px;}
+  #syncdot .d{width:8px;height:8px;border-radius:50%;background:var(--steel);}
+  #syncdot.on .d{background:var(--green);}
 
   main{padding:0 14px 96px; max-width:560px; margin:0 auto;}
   .page{display:none;} .page.active{display:block;}
 
-  /* ---- tab bar ---- */
   nav{position:fixed;bottom:0;left:0;right:0;background:var(--ink);
     display:flex;justify-content:space-around;padding:8px 4px calc(10px + env(safe-area-inset-bottom));
     z-index:50;}
@@ -38,10 +43,9 @@
   nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;}
   nav button.on{color:var(--amber);}
 
-  /* ---- find page ---- */
   .searchrow{display:flex;gap:8px;margin-top:6px;}
   .searchrow input{flex:1;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;
-    font-size:16px;background:#fff;outline:none;}
+    font-size:16px;background:#fff;outline:none;min-width:0;}
   .searchrow input:focus{border-color:var(--amber-dark);}
   .iconbtn{width:50px;border:none;border-radius:12px;background:var(--ink);color:var(--amber);
     display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
@@ -50,12 +54,11 @@
   @keyframes pulse{50%{opacity:0.6;}}
   .hint{font-size:12.5px;color:var(--steel);margin:10px 2px;}
 
-  /* ---- tag card (signature) ---- */
   .tag{background:var(--tag);border:1.5px solid var(--line);border-radius:14px;
     padding:14px 14px 14px 26px;margin:12px 0;position:relative;box-shadow:0 1px 3px rgba(36,39,43,.06);}
   .tag::before{content:'';position:absolute;left:10px;top:50%;transform:translateY(-50%);
     width:8px;height:8px;border-radius:50%;background:var(--paper);
-    box-shadow:inset 0 0 0 1.5px var(--steel);} /* punched hole */
+    box-shadow:inset 0 0 0 1.5px var(--steel);}
   .tag .row{display:flex;gap:12px;align-items:flex-start;}
   .tag img{width:74px;height:74px;object-fit:cover;border-radius:10px;background:var(--line);flex-shrink:0;}
   .tag .name{font-family:'Archivo';font-weight:700;font-size:16.5px;margin:0 0 3px;}
@@ -72,7 +75,6 @@
   .empty{text-align:center;padding:44px 20px;color:var(--steel);}
   .empty .disp{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;}
 
-  /* ---- forms ---- */
   label{display:block;font-family:'Archivo';font-weight:700;font-size:12px;
     letter-spacing:1px;text-transform:uppercase;color:var(--steel);margin:16px 2px 6px;}
   input[type=text],select,textarea{width:100%;padding:12px 13px;border:1.5px solid var(--line);
@@ -94,7 +96,6 @@
   .ok{background:var(--green);color:#fff;text-align:center;padding:12px;border-radius:12px;
     font-weight:600;margin-top:14px;display:none;}
 
-  /* ---- spots ---- */
   .spotcard{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;
     margin:10px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .spotcard .n{font-family:'Archivo';font-weight:700;font-size:15px;}
@@ -103,11 +104,10 @@
   .mini{border:1.5px solid var(--ink);background:#fff;border-radius:10px;padding:8px 12px;
     font-family:'Archivo';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
   .addspotrow{display:flex;gap:8px;margin-top:6px;}
-  .addspotrow input{flex:1;}
+  .addspotrow input{flex:1;min-width:0;}
   .addspotrow button{width:56px;border:none;border-radius:12px;background:var(--ink);
-    color:var(--amber);font-size:24px;cursor:pointer;}
+    color:var(--amber);font-size:24px;cursor:pointer;flex-shrink:0;}
 
-  /* ---- label modal ---- */
   .modal{display:none;position:fixed;inset:0;background:rgba(36,39,43,.55);z-index:100;
     align-items:center;justify-content:center;padding:20px;}
   .modal.open{display:flex;}
@@ -119,6 +119,18 @@
   .labelcard p{font-size:12.5px;color:var(--steel);}
   .labelcard .close{margin-top:10px;background:var(--ink);color:#fff;border:none;
     border-radius:10px;padding:11px 22px;font-family:'Archivo';font-weight:700;cursor:pointer;}
+
+  /* ---- sign-in gate ---- */
+  #gate{position:fixed;inset:0;background:var(--paper);z-index:200;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;}
+  #gate .biglogo{width:66px;height:66px;border-radius:16px;background:var(--ink);color:var(--amber);
+    display:flex;align-items:center;justify-content:center;font-family:'Archivo';font-weight:900;font-size:34px;margin-bottom:16px;}
+  #gate h2{font-size:24px;font-weight:900;margin:0 0 6px;}
+  #gate p{color:var(--steel);font-size:14px;max-width:300px;line-height:1.5;}
+  #gate .gbtn{margin-top:22px;display:flex;align-items:center;gap:10px;background:#fff;
+    border:1.5px solid var(--line);border-radius:12px;padding:13px 22px;font-family:'Archivo';
+    font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 1px 3px rgba(36,39,43,.08);}
+  #gate .err{color:var(--red);font-size:13px;margin-top:14px;max-width:320px;}
   @media print{
     body *{visibility:hidden;}
     .modal.open,.modal.open *{visibility:visible;}
@@ -129,12 +141,25 @@
 </head>
 <body>
 
+<!-- ============ SIGN-IN GATE ============ -->
+<div id="gate">
+  <div class="biglogo">T</div>
+  <h2>ToolCrib</h2>
+  <p id="gatemsg">Sign in once with your Google account, and your items follow you to every device.</p>
+  <button class="gbtn" id="signinbtn" onclick="signIn()">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2C36.9 40.4 44 35 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+    Sign in with Google
+  </button>
+  <div class="err" id="gateerr"></div>
+</div>
+
 <header>
   <div class="logo">T</div>
   <div>
     <h1>ToolCrib</h1>
     <div class="sub">Everything has a spot</div>
   </div>
+  <div id="syncdot"><span class="d"></span><span id="synctext">offline</span></div>
 </header>
 
 <main>
@@ -172,7 +197,7 @@
     <label>Notes</label>
     <textarea id="f-notes" placeholder="e.g. Inside the green toolbox, under the manuals"></textarea>
     <button class="primary" onclick="saveItem()">Save item</button>
-    <div class="ok" id="savedmsg">Saved. You'll thank yourself later.</div>
+    <div class="ok" id="savedmsg">Saved &amp; syncing to your other devices.</div>
   </section>
 
   <!-- ============ SPOTS ============ -->
@@ -195,7 +220,11 @@
       <button class="mini" style="flex:1" onclick="document.getElementById('importfile').click()">&#8682; Restore backup</button>
       <input type="file" id="importfile" accept=".json,application/json" hidden onchange="importData(event)">
     </div>
-    <div class="hint">Export saves all your items and photos to a file. Keep it in Google Drive — if you ever change phones, Restore brings everything back.</div>
+    <div class="hint">Backups are optional extra safety — your data already syncs to your account in the cloud.</div>
+    <div style="margin-top:16px;text-align:center;">
+      <span class="hint" id="whoami"></span><br>
+      <button class="mini" onclick="signOutNow()" style="margin-top:8px;color:var(--red);border-color:var(--red);">Sign out</button>
+    </div>
   </section>
 
 </main>
@@ -224,68 +253,114 @@
 </div>
 
 <script>
-/* ================= data ================= */
+/* =====================================================================
+   FIREBASE CONFIGURATION
+   Replace the block below with the firebaseConfig snippet copied from
+   your Firebase console (Project settings -> Your apps -> Web app).
+   Keep the words "const firebaseConfig =" at the start.
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAPjw8N11JoduyyEBit2YBarFQsYAxvmmQ",
+  authDomain: "toolcrib-b39e3.firebaseapp.com",
+  projectId: "toolcrib-b39e3",
+  storageBucket: "toolcrib-b39e3.firebasestorage.app",
+  messagingSenderId: "32688850348",
+  appId: "1:32688850348:web:0412c1e2ff7517f0e5e609"
+};
+/* ===================== END OF CONFIGURATION ========================= */
+
 let DB = { items: [], spots: [] };
-const KEY = 'toolcrib-v1';
+let user = null, db = null, unsubs = [], firstItemsSnap = false;
 
-/* Storage works in two environments:
-   1. Inside Claude (window.storage API)
-   2. Hosted on a normal website (localStorage)
-   Opened directly from a downloads folder, browsers block storage. */
-const hasClaudeStorage = (typeof window.storage !== 'undefined') && window.storage && window.storage.get;
-function hasLocalStorage() {
-  try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; }
-  catch (e) { return false; }
-}
+const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('PASTE');
 
-async function load() {
-  try {
-    if (hasClaudeStorage) {
-      const r = await window.storage.get(KEY);
-      if (r && r.value) DB = JSON.parse(r.value);
-    } else if (hasLocalStorage()) {
-      const s = localStorage.getItem(KEY);
-      if (s) DB = JSON.parse(s);
+if (!configured) {
+  document.getElementById('gatemsg').innerHTML =
+    'This copy is not yet connected to its database.<br><br><b>Setup needed:</b> paste your Firebase configuration into the marked block near the top of the &lt;script&gt; section in index.html.';
+  document.getElementById('signinbtn').style.display = 'none';
+} else {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+  firebase.auth().onAuthStateChanged(u => {
+    user = u;
+    if (u) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('whoami').textContent = 'Signed in as ' + (u.email || u.displayName || '');
+      startSync();
     } else {
-      document.getElementById('findhint').innerHTML =
-        '<b style="color:var(--red)">Saving is blocked here.</b> This page was opened directly from a downloads folder. Host the file on a website (e.g. your WordPress site) and open it from its https:// address — then everything saves permanently.';
+      stopSync();
+      document.getElementById('gate').style.display = 'flex';
     }
-  } catch (e) { /* first run: no data yet */ }
-  refreshSpotSelect(); renderSpots(); renderAll();
-}
-async function persist() {
-  const s = JSON.stringify(DB);
-  if (s.length > 4500000) { alert('Storage is nearly full. Delete some old items or photos.'); }
-  try {
-    if (hasClaudeStorage) { await window.storage.set(KEY, s); return; }
-    if (hasLocalStorage()) { localStorage.setItem(KEY, s); return; }
-    alert('Saving is blocked because this page was opened from the downloads folder. Host it on your website (https://) and it will save permanently.');
-  } catch (e) { alert('Could not save — storage may be full. Try deleting some photos/items.'); }
+  });
+  /* handle return from redirect sign-in */
+  firebase.auth().getRedirectResult().catch(e => showGateErr(e));
 }
 
-/* ---- backup: export / import ---- */
-function exportData() {
-  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'toolcrib-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-  document.body.appendChild(a); a.click(); a.remove();
+function showGateErr(e) {
+  document.getElementById('gateerr').textContent =
+    'Sign-in problem: ' + (e && e.message ? e.message : e) +
+    ' — if it mentions "unauthorized domain", add this site\'s domain in Firebase: Authentication → Settings → Authorized domains.';
 }
-function importData(e) {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = async () => {
-    try {
-      const d = JSON.parse(r.result);
-      if (!d.items || !d.spots) throw 0;
-      DB = d; await persist();
-      refreshSpotSelect(); renderSpots(); renderAll();
-      alert('Backup restored: ' + DB.items.length + ' items, ' + DB.spots.length + ' spots.');
-    } catch (err) { alert('That file is not a valid ToolCrib backup.'); }
-  };
-  r.readAsText(f); e.target.value = '';
+function signIn() {
+  const p = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(p).catch(err => {
+    /* popups are sometimes blocked on mobile — fall back to redirect */
+    if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' ||
+        err.code === 'auth/cancelled-popup-request' || err.code === 'auth/operation-not-supported-in-this-environment')) {
+      firebase.auth().signInWithRedirect(p).catch(e2 => showGateErr(e2));
+    } else showGateErr(err);
+  });
 }
-const uid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+function signOutNow() {
+  if (confirm('Sign out of ToolCrib on this device? Your data stays safe in your account.'))
+    firebase.auth().signOut();
+}
+
+/* ================= live sync ================= */
+function setSync(on) {
+  const el = document.getElementById('syncdot');
+  el.classList.toggle('on', on);
+  document.getElementById('synctext').textContent = on ? 'synced' : 'offline';
+}
+function startSync() {
+  stopSync(); firstItemsSnap = false;
+  const base = db.collection('users').doc(user.uid);
+  unsubs.push(base.collection('spots').onSnapshot(snap => {
+    DB.spots = snap.docs.map(d => d.data());
+    DB.spots.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    refreshSpotSelect(); renderSpots(); renderAll();
+  }, e => setSync(false)));
+  unsubs.push(base.collection('items').onSnapshot(snap => {
+    DB.items = snap.docs.map(d => d.data());
+    DB.items.sort((a, b) => (b.at || 0) - (a.at || 0));
+    renderAll(); renderSpots();
+    doSearch(document.getElementById('q').value);
+    setSync(!snap.metadata.fromCache);
+    if (!firstItemsSnap) { firstItemsSnap = true; setTimeout(migrateLocal, 400); }
+  }, e => setSync(false)));
+}
+function stopSync() { unsubs.forEach(u => u()); unsubs = []; }
+
+/* one-time: move data saved by the earlier (single-phone) version into the account */
+async function migrateLocal() {
+  try {
+    const s = localStorage.getItem('toolcrib-v1'); if (!s) return;
+    const old = JSON.parse(s);
+    const n = (old.items || []).length, m = (old.spots || []).length;
+    if (!n && !m) return;
+    if (DB.items.length || DB.spots.length) return; /* account already has data */
+    if (!confirm('Found ' + n + ' item(s) and ' + m + ' spot(s) saved on this phone by the earlier version. Move them into your synced account now?')) return;
+    const batch = db.batch();
+    const base = db.collection('users').doc(user.uid);
+    (old.spots || []).forEach(sp => batch.set(base.collection('spots').doc(sp.id), sp));
+    (old.items || []).forEach(it => batch.set(base.collection('items').doc(it.id), clean(it)));
+    await batch.commit();
+    localStorage.removeItem('toolcrib-v1');
+    alert('Done — your earlier records are now in your account and will appear on every device.');
+  } catch (e) {}
+}
+function clean(o) { const c = {}; Object.keys(o).forEach(k => { if (o[k] !== undefined) c[k] = o[k]; }); return c; }
 
 /* ================= navigation ================= */
 function go(p) {
@@ -297,11 +372,13 @@ function go(p) {
   if (p === 'spots') renderSpots();
   if (p === 'add') refreshSpotSelect();
 }
+const uid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 /* ================= spots ================= */
 function addSpot(name) {
   const spot = { id: uid(), name: name.trim(), code: 'S-' + uid().slice(0, 4) };
-  DB.spots.push(spot); persist();
+  DB.spots.push(spot);
+  db.collection('users').doc(user.uid).collection('spots').doc(spot.id).set(spot);
   return spot;
 }
 function addSpotFromInput() {
@@ -328,9 +405,11 @@ function renderSpots() {
 }
 function refreshSpotSelect() {
   const sel = document.getElementById('f-spot');
+  const cur = sel.value;
   sel.innerHTML = '<option value="">— choose a spot —</option>' +
     DB.spots.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('') +
     '<option value="__new">+ New spot…</option>';
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 document.getElementById('f-spot').addEventListener('change', e => {
   document.getElementById('f-newspot').style.display = e.target.value === '__new' ? 'block' : 'none';
@@ -347,7 +426,6 @@ function showLabel(id) {
 }
 function closeLabel() { document.getElementById('labelmodal').classList.remove('open'); }
 
-/* scan a photo of a QR label */
 document.getElementById('scanfile').addEventListener('change', e => {
   const f = e.target.files[0]; if (!f) return;
   const img = new Image();
@@ -414,12 +492,17 @@ async function saveItem() {
     spotId = addSpot(ns).id;
   }
   if (!spotId) { alert('Choose or create a spot — that is the whole point!'); return; }
-  DB.items.unshift({
+  const item = {
     id: uid(), name, spotId,
     notes: document.getElementById('f-notes').value.trim(),
-    photoItem, photoSpot, at: Date.now()
-  });
-  await persist();
+    photoItem: photoItem || null, photoSpot: photoSpot || null, at: Date.now()
+  };
+  try {
+    await db.collection('users').doc(user.uid).collection('items').doc(item.id).set(item);
+  } catch (e) {
+    alert('Could not save: ' + e.message + '\nIf this mentions "permissions", check your Firestore security rules.');
+    return;
+  }
   /* reset form */
   ['f-name', 'f-notes', 'f-newspot'].forEach(i => document.getElementById(i).value = '');
   document.getElementById('f-spot').value = '';
@@ -438,7 +521,7 @@ function esc(t) { return (t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 
 document.getElementById('q').addEventListener('input', e => doSearch(e.target.value));
 function doSearch(q) {
-  q = q.trim().toLowerCase();
+  q = (q || '').trim().toLowerCase();
   if (!q) { document.getElementById('results').innerHTML = ''; return; }
   const hits = DB.items.filter(i => {
     const sp = spotOf(i);
@@ -481,18 +564,43 @@ function renderResults(list, headline) {
 }
 async function delItem(id) {
   if (!confirm('Delete this item?')) return;
-  DB.items = DB.items.filter(i => i.id !== id);
-  await persist();
-  doSearch(document.getElementById('q').value); renderAll(); renderSpots();
+  try { await db.collection('users').doc(user.uid).collection('items').doc(id).delete(); }
+  catch (e) { alert('Could not delete: ' + e.message); }
 }
 
 /* ================= all items ================= */
 function renderAll() {
   document.getElementById('allcount').textContent =
-    DB.items.length ? `${DB.items.length} item${DB.items.length === 1 ? '' : 's'} recorded` : '';
+    DB.items.length ? `${DB.items.length} item${DB.items.length === 1 ? '' : 's'} in your account` : '';
   const box = document.getElementById('alllist');
   box.innerHTML = DB.items.length ? DB.items.map(itemCard).join('') :
     '<div class="empty"><div class="disp">Your crib is empty</div>Add your first item from the Add tab.</div>';
+}
+
+/* ================= backup ================= */
+function exportData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'toolcrib-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function importData(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = async () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d.items || !d.spots) throw 0;
+      const batch = db.batch();
+      const base = db.collection('users').doc(user.uid);
+      d.spots.forEach(sp => batch.set(base.collection('spots').doc(sp.id), clean(sp)));
+      d.items.forEach(it => batch.set(base.collection('items').doc(it.id), clean(it)));
+      await batch.commit();
+      alert('Backup restored: ' + d.items.length + ' items, ' + d.spots.length + ' spots.');
+    } catch (err) { alert('That file is not a valid ToolCrib backup.'); }
+  };
+  r.readAsText(f); e.target.value = '';
 }
 
 /* ================= voice search ================= */
@@ -520,8 +628,6 @@ if (SR) {
 } else {
   micbtn.style.display = 'none';
 }
-
-load();
 </script>
 </body>
 </html>
