@@ -74,6 +74,12 @@
 
   .empty{text-align:center;padding:44px 20px;color:var(--steel);}
   .empty .disp{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .welcome{background:#fff;border:1.5px solid var(--line);border-radius:14px;
+    padding:24px 18px;margin:14px 0;text-align:center;}
+  .welcome .disp{font-size:19px;font-weight:900;margin-bottom:10px;}
+  .welcome p{font-size:14px;color:var(--steel);line-height:1.55;margin:7px 0;}
+  .welcome p b{color:var(--ink);}
+  .welcome .primary{margin-top:16px;}
 
   label{display:block;font-family:'Archivo';font-weight:700;font-size:12px;
     letter-spacing:1px;text-transform:uppercase;color:var(--steel);margin:16px 2px 6px;}
@@ -186,7 +192,8 @@
     <input type="text" id="f-name" placeholder="e.g. Multimeter, Passport, Spare keys">
     <label>Where is it kept? (Spot)</label>
     <select id="f-spot"></select>
-    <input type="text" id="f-newspot" placeholder="Name the new spot, e.g. Office cabinet, drawer 2" style="margin-top:8px;display:none;">
+    <div class="hint" style="margin:8px 2px 2px;">…or type a NEW spot here:</div>
+    <input type="text" id="f-newspot" placeholder="e.g. Office cabinet, drawer 2">
     <label>Photos (optional but powerful)</label>
     <div class="photobtns">
       <div class="photobtn" id="pb-item" onclick="document.getElementById('f-photoitem').click()"><span>&#128247; The item</span></div>
@@ -406,13 +413,15 @@ function renderSpots() {
 function refreshSpotSelect() {
   const sel = document.getElementById('f-spot');
   const cur = sel.value;
-  sel.innerHTML = '<option value="">— choose a spot —</option>' +
-    DB.spots.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('') +
-    '<option value="__new">+ New spot…</option>';
+  sel.innerHTML = '<option value="">— choose an existing spot —</option>' +
+    DB.spots.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 document.getElementById('f-spot').addEventListener('change', e => {
-  document.getElementById('f-newspot').style.display = e.target.value === '__new' ? 'block' : 'none';
+  if (e.target.value) document.getElementById('f-newspot').value = '';
+});
+document.getElementById('f-newspot').addEventListener('input', e => {
+  if (e.target.value.trim()) document.getElementById('f-spot').value = '';
 });
 
 /* ================= QR label ================= */
@@ -486,12 +495,12 @@ async function saveItem() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { alert('Give the item a name.'); return; }
   let spotId = document.getElementById('f-spot').value;
-  if (spotId === '__new') {
-    const ns = document.getElementById('f-newspot').value.trim();
-    if (!ns) { alert('Name the new spot.'); return; }
-    spotId = addSpot(ns).id;
+  const ns = document.getElementById('f-newspot').value.trim();
+  if (ns) {
+    const existing = DB.spots.find(s => s.name.toLowerCase() === ns.toLowerCase());
+    spotId = existing ? existing.id : addSpot(ns).id;
   }
-  if (!spotId) { alert('Choose or create a spot — that is the whole point!'); return; }
+  if (!spotId) { alert('Tell ToolCrib where the item is kept: choose an existing spot from the list, or type a new one.'); return; }
   const item = {
     id: uid(), name, spotId,
     notes: document.getElementById('f-notes').value.trim(),
@@ -506,7 +515,6 @@ async function saveItem() {
   /* reset form */
   ['f-name', 'f-notes', 'f-newspot'].forEach(i => document.getElementById(i).value = '');
   document.getElementById('f-spot').value = '';
-  document.getElementById('f-newspot').style.display = 'none';
   photoItem = photoSpot = null;
   document.getElementById('pb-item').outerHTML = '<div class="photobtn" id="pb-item" onclick="document.getElementById(\'f-photoitem\').click()"><span>&#128247; The item</span></div>';
   document.getElementById('pb-spot').outerHTML = '<div class="photobtn" id="pb-spot" onclick="document.getElementById(\'f-photospot\').click()"><span>&#128247; The spot</span></div>';
@@ -522,7 +530,7 @@ function esc(t) { return (t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 document.getElementById('q').addEventListener('input', e => doSearch(e.target.value));
 function doSearch(q) {
   q = (q || '').trim().toLowerCase();
-  if (!q) { document.getElementById('results').innerHTML = ''; return; }
+  if (!q) { renderHome(); return; }
   const hits = DB.items.filter(i => {
     const sp = spotOf(i);
     return i.name.toLowerCase().includes(q) ||
@@ -530,6 +538,29 @@ function doSearch(q) {
            (sp && sp.name.toLowerCase().includes(q));
   });
   renderResults(hits, hits.length ? `${hits.length} match${hits.length === 1 ? '' : 'es'}` : null);
+}
+
+/* welcome / home state for the Find tab */
+function renderHome() {
+  const r = document.getElementById('results');
+  if (DB.items.length) { r.innerHTML = ''; return; }
+  r.innerHTML = `<div class="welcome">
+    <div class="disp">Welcome to ToolCrib! &#128075;</div>
+    <p>ToolCrib is your memory for where things are kept.<br>It works in two steps:</p>
+    <p><b>&#9312; Record</b> — when you put something away,<br>tell ToolCrib what it is and where you put it.</p>
+    <p><b>&#9313; Find</b> — later, search here and ToolCrib<br>reminds you instantly, with photos.</p>
+    <p>It can only find what you have recorded first —<br>so start by recording a few things now.</p>
+    <button class="primary" onclick="go('add')">&#10133; Record your first item</button>
+  </div>`;
+}
+
+/* jump to Add with the searched name pre-filled */
+function prefillAdd() {
+  const q = document.getElementById('q').value.trim();
+  if (q) {
+    document.getElementById('f-name').value = q.charAt(0).toUpperCase() + q.slice(1);
+  }
+  go('add');
 }
 
 function itemCard(i) {
@@ -557,7 +588,10 @@ function toggleSpotPhoto(id) {
 function renderResults(list, headline) {
   const r = document.getElementById('results');
   if (!list.length) {
-    r.innerHTML = '<div class="empty"><div class="disp">Nothing found</div>Try another word, or check the All tab.</div>';
+    r.innerHTML = `<div class="empty"><div class="disp">Not recorded yet</div>
+      ToolCrib can only find things you have recorded first — and there is no record matching this yet.<br>
+      If you know where it is right now, record it once and you will never have to search for it again.
+      <br><button class="primary" style="margin-top:16px" onclick="prefillAdd()">&#10133; Record it now</button></div>`;
     return;
   }
   r.innerHTML = (headline ? `<div class="hint">${esc(headline)}</div>` : '') + list.map(itemCard).join('');
