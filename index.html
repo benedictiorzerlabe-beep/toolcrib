@@ -35,11 +35,11 @@
   .page{display:none;} .page.active{display:block;}
 
   nav{position:fixed;bottom:0;left:0;right:0;background:var(--ink);
-    display:flex;justify-content:space-around;padding:8px 4px calc(10px + env(safe-area-inset-bottom));
+    display:flex;justify-content:space-around;padding:8px 2px calc(10px + env(safe-area-inset-bottom));
     z-index:50;}
   nav button{background:none;border:none;color:#9AA3A9;font-family:'Archivo';font-weight:700;
-    font-size:11px;letter-spacing:0.6px;display:flex;flex-direction:column;align-items:center;
-    gap:3px;padding:4px 10px;border-radius:8px;cursor:pointer;}
+    font-size:10.5px;letter-spacing:0.4px;display:flex;flex-direction:column;align-items:center;
+    gap:3px;padding:4px 7px;border-radius:8px;cursor:pointer;}
   nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;}
   nav button.on{color:var(--amber);}
 
@@ -59,12 +59,14 @@
   .tag::before{content:'';position:absolute;left:10px;top:50%;transform:translateY(-50%);
     width:8px;height:8px;border-radius:50%;background:var(--paper);
     box-shadow:inset 0 0 0 1.5px var(--steel);}
+  .tag.fam{border-color:#CBD9CE;}
   .tag .row{display:flex;gap:12px;align-items:flex-start;}
   .tag img{width:74px;height:74px;object-fit:cover;border-radius:10px;background:var(--line);flex-shrink:0;}
   .tag .name{font-family:'Archivo';font-weight:700;font-size:16.5px;margin:0 0 3px;}
   .tag .loc{font-size:13.5px;color:var(--ink);}
   .tag .loc b{color:var(--amber-dark);font-family:'Archivo';letter-spacing:0.4px;}
   .tag .notes{font-size:12.5px;color:var(--steel);margin-top:4px;}
+  .tag .by{font-size:11.5px;color:var(--green);font-weight:600;margin-top:4px;}
   .tag .actions{margin-top:9px;display:flex;gap:14px;}
   .tag .actions a{font-size:12.5px;font-weight:600;color:var(--steel);text-decoration:none;cursor:pointer;}
   .tag .actions a.del{color:var(--red);}
@@ -95,6 +97,11 @@
   .photobtn.filled{border-style:solid;border-color:var(--green);color:var(--green);}
   .photobtn img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.85;}
   .photobtn span{position:relative;z-index:1;background:rgba(255,255,255,.85);padding:2px 8px;border-radius:6px;}
+  .scopebtns{display:flex;gap:10px;}
+  .scopebtn{flex:1;border:1.5px solid var(--line);border-radius:12px;background:#fff;
+    padding:12px 8px;text-align:center;font-family:'Archivo';font-weight:700;font-size:13.5px;
+    color:var(--steel);cursor:pointer;}
+  .scopebtn.on{border-color:var(--green);color:var(--green);background:#F1F6F2;}
   .primary{width:100%;margin-top:22px;padding:15px;border:none;border-radius:13px;
     background:var(--amber);color:var(--ink);font-family:'Archivo';font-weight:900;
     font-size:16px;letter-spacing:0.4px;cursor:pointer;}
@@ -113,6 +120,20 @@
   .addspotrow input{flex:1;min-width:0;}
   .addspotrow button{width:56px;border:none;border-radius:12px;background:var(--ink);
     color:var(--amber);font-size:24px;cursor:pointer;flex-shrink:0;}
+  .sectionhead{font-family:'Archivo';font-weight:900;font-size:13px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--steel);margin:22px 2px 4px;display:flex;align-items:center;gap:7px;}
+  .sectionhead .dot{width:9px;height:9px;border-radius:50%;background:var(--green);}
+  .sectionhead .dot.priv{background:var(--amber-dark);}
+
+  /* family cards */
+  .famcard{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px 16px;margin:14px 0;}
+  .famcard h3{margin:0 0 4px;font-size:16px;font-weight:900;}
+  .famcard p{font-size:13px;color:var(--steel);margin:4px 0 10px;line-height:1.5;}
+  .codebig{font-family:'Archivo';font-weight:900;font-size:34px;letter-spacing:6px;
+    color:var(--amber-dark);text-align:center;background:var(--paper);border:1.5px dashed var(--amber-dark);
+    border-radius:12px;padding:14px 8px;margin:12px 0;}
+  .member{display:inline-block;background:#F1F6F2;border:1.5px solid #CBD9CE;color:var(--green);
+    font-weight:600;font-size:13px;border-radius:20px;padding:6px 13px;margin:3px 4px 3px 0;}
 
   .modal{display:none;position:fixed;inset:0;background:rgba(36,39,43,.55);z-index:100;
     align-items:center;justify-content:center;padding:20px;}
@@ -126,7 +147,6 @@
   .labelcard .close{margin-top:10px;background:var(--ink);color:#fff;border:none;
     border-radius:10px;padding:11px 22px;font-family:'Archivo';font-weight:700;cursor:pointer;}
 
-  /* ---- sign-in gate ---- */
   #gate{position:fixed;inset:0;background:var(--paper);z-index:200;display:flex;
     flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;}
   #gate .biglogo{width:66px;height:66px;border-radius:16px;background:var(--ink);color:var(--amber);
@@ -190,6 +210,13 @@
   <section class="page" id="page-add">
     <label>Item name</label>
     <input type="text" id="f-name" placeholder="e.g. Multimeter, Passport, Spare keys">
+    <div id="scopewrap" style="display:none">
+      <label>Save to</label>
+      <div class="scopebtns">
+        <div class="scopebtn on" id="scope-fam" onclick="setScope(true)">&#127968; <span id="scopefamname">Family</span></div>
+        <div class="scopebtn" id="scope-priv" onclick="setScope(false)">&#128274; Only me</div>
+      </div>
+    </div>
     <label>Where is it kept? (Spot)</label>
     <select id="f-spot"></select>
     <div class="hint" style="margin:8px 2px 2px;">…or type a NEW spot here:</div>
@@ -204,7 +231,7 @@
     <label>Notes</label>
     <textarea id="f-notes" placeholder="e.g. Inside the green toolbox, under the manuals"></textarea>
     <button class="primary" onclick="saveItem()">Save item</button>
-    <div class="ok" id="savedmsg">Saved &amp; syncing to your other devices.</div>
+    <div class="ok" id="savedmsg">Saved &amp; syncing.</div>
   </section>
 
   <!-- ============ SPOTS ============ -->
@@ -214,8 +241,19 @@
       <input type="text" id="s-name" placeholder="e.g. Workshop shelf B, Bedroom wardrobe top">
       <button onclick="addSpotFromInput()">+</button>
     </div>
+    <div id="s-scopewrap" style="display:none;margin-top:8px;">
+      <select id="s-scope">
+        <option value="fam">Add to: &#127968; Family spots</option>
+        <option value="priv">Add to: &#128274; My private spots</option>
+      </select>
+    </div>
     <div class="hint">Each spot gets a QR label. Print or screenshot it and stick it on the box or shelf. Scanning it later shows everything inside.</div>
     <div id="spotlist"></div>
+  </section>
+
+  <!-- ============ FAMILY ============ -->
+  <section class="page" id="page-family">
+    <div id="famcontent"></div>
   </section>
 
   <!-- ============ ALL ============ -->
@@ -243,6 +281,8 @@
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add</button>
   <button id="tab-spots" onclick="go('spots')">
     <svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Spots</button>
+  <button id="tab-family" onclick="go('family')">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Family</button>
   <button id="tab-all" onclick="go('all')">
     <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>All</button>
 </nav>
@@ -262,9 +302,6 @@
 <script>
 /* =====================================================================
    FIREBASE CONFIGURATION
-   Replace the block below with the firebaseConfig snippet copied from
-   your Firebase console (Project settings -> Your apps -> Web app).
-   Keep the words "const firebaseConfig =" at the start.
    ===================================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyAPjw8N11JoduyyEBit2YBarFQsYAxvmmQ",
@@ -276,14 +313,17 @@ const firebaseConfig = {
 };
 /* ===================== END OF CONFIGURATION ========================= */
 
-let DB = { items: [], spots: [] };
-let user = null, db = null, unsubs = [], firstItemsSnap = false;
+let DB = { items: [], spots: [], fitems: [], fspots: [] };
+let user = null, db = null, unsubs = [], hUnsubs = [], firstItemsSnap = false;
+let profile = null;        /* users/{uid} doc: {name, householdId} */
+let household = null;      /* current household doc */
+let saveScope = true;      /* true = family, false = private (when in a household) */
 
 const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('PASTE');
 
 if (!configured) {
   document.getElementById('gatemsg').innerHTML =
-    'This copy is not yet connected to its database.<br><br><b>Setup needed:</b> paste your Firebase configuration into the marked block near the top of the &lt;script&gt; section in index.html.';
+    'This copy is not yet connected to its database. Paste your Firebase configuration into the marked block in index.html.';
   document.getElementById('signinbtn').style.display = 'none';
 } else {
   firebase.initializeApp(firebaseConfig);
@@ -294,13 +334,13 @@ if (!configured) {
     if (u) {
       document.getElementById('gate').style.display = 'none';
       document.getElementById('whoami').textContent = 'Signed in as ' + (u.email || u.displayName || '');
-      startSync();
+      ensureProfile().then(startSync);
     } else {
-      stopSync();
+      stopSync(); stopFamilySync();
+      profile = null; household = null;
       document.getElementById('gate').style.display = 'flex';
     }
   });
-  /* handle return from redirect sign-in */
   firebase.auth().getRedirectResult().catch(e => showGateErr(e));
 }
 
@@ -312,7 +352,6 @@ function showGateErr(e) {
 function signIn() {
   const p = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(p).catch(err => {
-    /* popups are sometimes blocked on mobile — fall back to redirect */
     if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' ||
         err.code === 'auth/cancelled-popup-request' || err.code === 'auth/operation-not-supported-in-this-environment')) {
       firebase.auth().signInWithRedirect(p).catch(e2 => showGateErr(e2));
@@ -324,6 +363,14 @@ function signOutNow() {
     firebase.auth().signOut();
 }
 
+/* ================= profile & membership ================= */
+async function ensureProfile() {
+  const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Someone');
+  try {
+    await db.collection('users').doc(user.uid).set({ name: name, email: user.email || '' }, { merge: true });
+  } catch (e) {}
+}
+
 /* ================= live sync ================= */
 function setSync(on) {
   const el = document.getElementById('syncdot');
@@ -333,30 +380,74 @@ function setSync(on) {
 function startSync() {
   stopSync(); firstItemsSnap = false;
   const base = db.collection('users').doc(user.uid);
+  /* profile doc: watches which household we belong to */
+  unsubs.push(base.onSnapshot(snap => {
+    profile = snap.data() || {};
+    const hid = profile.householdId || null;
+    if (hid && (!household || household.id !== hid)) startFamilySync(hid);
+    if (!hid) { stopFamilySync(); rerender(); }
+    renderFamily(); updateScopeUI();
+  }, e => {}));
   unsubs.push(base.collection('spots').onSnapshot(snap => {
     DB.spots = snap.docs.map(d => d.data());
     DB.spots.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    refreshSpotSelect(); renderSpots(); renderAll();
+    rerender();
   }, e => setSync(false)));
   unsubs.push(base.collection('items').onSnapshot(snap => {
     DB.items = snap.docs.map(d => d.data());
-    DB.items.sort((a, b) => (b.at || 0) - (a.at || 0));
-    renderAll(); renderSpots();
-    doSearch(document.getElementById('q').value);
+    rerender();
     setSync(!snap.metadata.fromCache);
     if (!firstItemsSnap) { firstItemsSnap = true; setTimeout(migrateLocal, 400); }
   }, e => setSync(false)));
 }
 function stopSync() { unsubs.forEach(u => u()); unsubs = []; }
 
-/* one-time: move data saved by the earlier (single-phone) version into the account */
+function startFamilySync(hid) {
+  stopFamilySync();
+  const base = db.collection('households').doc(hid);
+  hUnsubs.push(base.onSnapshot(snap => {
+    household = snap.exists ? Object.assign({ id: snap.id }, snap.data()) : null;
+    renderFamily(); updateScopeUI();
+  }, e => {}));
+  hUnsubs.push(base.collection('spots').onSnapshot(snap => {
+    DB.fspots = snap.docs.map(d => d.data());
+    DB.fspots.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    rerender();
+  }, e => {}));
+  hUnsubs.push(base.collection('items').onSnapshot(snap => {
+    DB.fitems = snap.docs.map(d => d.data());
+    rerender();
+  }, e => {}));
+}
+function stopFamilySync() {
+  hUnsubs.forEach(u => u()); hUnsubs = [];
+  household = null; DB.fitems = []; DB.fspots = [];
+}
+
+/* merged views */
+function allItems() {
+  const mine = DB.items.map(i => Object.assign({}, i, { _fam: false }));
+  const fam = DB.fitems.map(i => Object.assign({}, i, { _fam: true }));
+  return mine.concat(fam).sort((a, b) => (b.at || 0) - (a.at || 0));
+}
+function allSpots() {
+  const mine = DB.spots.map(s => Object.assign({}, s, { _fam: false }));
+  const fam = DB.fspots.map(s => Object.assign({}, s, { _fam: true }));
+  return fam.concat(mine);
+}
+function rerender() {
+  refreshSpotSelect(); renderSpots(); renderAll();
+  doSearch(document.getElementById('q').value);
+}
+
+/* one-time: move data saved by the earliest (single-phone) version into the account */
 async function migrateLocal() {
   try {
     const s = localStorage.getItem('toolcrib-v1'); if (!s) return;
     const old = JSON.parse(s);
     const n = (old.items || []).length, m = (old.spots || []).length;
     if (!n && !m) return;
-    if (DB.items.length || DB.spots.length) return; /* account already has data */
+    if (DB.items.length || DB.spots.length) return;
     if (!confirm('Found ' + n + ' item(s) and ' + m + ' spot(s) saved on this phone by the earlier version. Move them into your synced account now?')) return;
     const batch = db.batch();
     const base = db.collection('users').doc(user.uid);
@@ -364,10 +455,98 @@ async function migrateLocal() {
     (old.items || []).forEach(it => batch.set(base.collection('items').doc(it.id), clean(it)));
     await batch.commit();
     localStorage.removeItem('toolcrib-v1');
-    alert('Done — your earlier records are now in your account and will appear on every device.');
+    alert('Done — your earlier records are now in your account.');
   } catch (e) {}
 }
 function clean(o) { const c = {}; Object.keys(o).forEach(k => { if (o[k] !== undefined) c[k] = o[k]; }); return c; }
+
+/* ================= family (household) ================= */
+function myName() { return (profile && profile.name) || (user && user.displayName) || 'Someone'; }
+
+async function createHousehold() {
+  const nameEl = document.getElementById('h-name');
+  const name = (nameEl ? nameEl.value.trim() : '') || 'Our Home';
+  const hid = uid() + uid();
+  const code = uid(); /* 6 characters */
+  try {
+    await db.collection('households').doc(hid).set({
+      name: name, code: code, createdBy: user.uid,
+      members: { [user.uid]: myName() }
+    });
+    await db.collection('users').doc(user.uid).set({ householdId: hid }, { merge: true });
+  } catch (e) { alert('Could not create the family crib: ' + e.message); }
+}
+async function joinHousehold() {
+  const codeEl = document.getElementById('h-code');
+  const code = (codeEl ? codeEl.value.trim().toUpperCase() : '');
+  if (code.length < 4) { alert('Type the invite code you were given (6 characters).'); return; }
+  try {
+    const q = await db.collection('households').where('code', '==', code).limit(1).get();
+    if (q.empty) { alert('No family crib found with that code. Check the code and try again.'); return; }
+    const h = q.docs[0];
+    await db.collection('households').doc(h.id).set({ members: { [user.uid]: myName() } }, { merge: true });
+    await db.collection('users').doc(user.uid).set({ householdId: h.id }, { merge: true });
+  } catch (e) { alert('Could not join: ' + e.message); }
+}
+async function leaveHousehold() {
+  if (!household) return;
+  if (!confirm('Leave "' + household.name + '"? Family items stay with the family; your private items are unaffected.')) return;
+  try {
+    await db.collection('households').doc(household.id).set(
+      { members: { [user.uid]: firebase.firestore.FieldValue.delete() } }, { merge: true });
+    await db.collection('users').doc(user.uid).set({ householdId: null }, { merge: true });
+  } catch (e) { alert('Could not leave: ' + e.message); }
+}
+
+function renderFamily() {
+  const box = document.getElementById('famcontent');
+  if (!box) return;
+  if (!user) { box.innerHTML = ''; return; }
+  if (!household) {
+    box.innerHTML = `
+      <div class="famcard">
+        <h3>&#127968; Start a family crib</h3>
+        <p>A shared collection for your household. Everyone in it can record and find the family's things — the projector remote, the spare gate key, the toolbox.</p>
+        <input type="text" id="h-name" placeholder="Name it, e.g. Labe Family">
+        <button class="primary" style="margin-top:12px" onclick="createHousehold()">Create family crib</button>
+      </div>
+      <div class="famcard">
+        <h3>&#128273; Join a family crib</h3>
+        <p>Were you given a 6-character invite code? Enter it here.</p>
+        <input type="text" id="h-code" placeholder="e.g. 8KQ2ZP" style="text-transform:uppercase;letter-spacing:3px;font-family:'Archivo';font-weight:700;">
+        <button class="primary" style="margin-top:12px" onclick="joinHousehold()">Join</button>
+      </div>
+      <div class="hint">You can belong to one family crib at a time. Your private items always remain yours alone.</div>`;
+    return;
+  }
+  const members = household.members || {};
+  const chips = Object.keys(members).map(k =>
+    `<span class="member">${esc(members[k] || 'Member')}${k === user.uid ? ' (you)' : ''}</span>`).join('');
+  box.innerHTML = `
+    <div class="famcard">
+      <h3>&#127968; ${esc(household.name)}</h3>
+      <p>Share this invite code with family members. In their ToolCrib, they go to <b>Family → Join</b> and type it:</p>
+      <div class="codebig">${esc(household.code)}</div>
+      <p style="margin-top:14px"><b>Members:</b><br>${chips}</p>
+      <p>Anything saved to the family crib is visible to everyone above. Items saved as &#128274; "Only me" stay private.</p>
+      <button class="mini" style="color:var(--red);border-color:var(--red);margin-top:6px" onclick="leaveHousehold()">Leave family crib</button>
+    </div>`;
+}
+
+function updateScopeUI() {
+  const inH = !!household;
+  document.getElementById('scopewrap').style.display = inH ? 'block' : 'none';
+  document.getElementById('s-scopewrap').style.display = inH ? 'block' : 'none';
+  if (inH) document.getElementById('scopefamname').textContent = household.name;
+  if (!inH) saveScope = false; else if (document.getElementById('scope-fam').classList.contains('on')) saveScope = true;
+  refreshSpotSelect();
+}
+function setScope(fam) {
+  saveScope = fam;
+  document.getElementById('scope-fam').classList.toggle('on', fam);
+  document.getElementById('scope-priv').classList.toggle('on', !fam);
+  refreshSpotSelect();
+}
 
 /* ================= navigation ================= */
 function go(p) {
@@ -378,43 +557,63 @@ function go(p) {
   if (p === 'all') renderAll();
   if (p === 'spots') renderSpots();
   if (p === 'add') refreshSpotSelect();
+  if (p === 'family') renderFamily();
 }
 const uid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 /* ================= spots ================= */
-function addSpot(name) {
+function spotWriteTarget(fam) {
+  return fam ? db.collection('households').doc(household.id).collection('spots')
+             : db.collection('users').doc(user.uid).collection('spots');
+}
+function addSpot(name, fam) {
   const spot = { id: uid(), name: name.trim(), code: 'S-' + uid().slice(0, 4) };
-  DB.spots.push(spot);
-  db.collection('users').doc(user.uid).collection('spots').doc(spot.id).set(spot);
+  if (fam && household) { DB.fspots.push(spot); spotWriteTarget(true).doc(spot.id).set(spot); spot._fam = true; }
+  else { DB.spots.push(spot); spotWriteTarget(false).doc(spot.id).set(spot); spot._fam = false; }
   return spot;
 }
 function addSpotFromInput() {
   const el = document.getElementById('s-name');
   if (!el.value.trim()) return;
-  addSpot(el.value); el.value = '';
+  const fam = household && document.getElementById('s-scope').value === 'fam';
+  addSpot(el.value, fam); el.value = '';
   renderSpots(); refreshSpotSelect();
+}
+function spotCard(s) {
+  const n = allItems().filter(i => i.spotId === s.id).length;
+  return `<div class="spotcard">
+    <div><div class="n">${esc(s.name)}</div>
+    <div class="c">${s.code}</div>
+    <div class="count">${n} item${n === 1 ? '' : 's'}</div></div>
+    <button class="mini" onclick="showLabel('${s.id}')">QR label</button>
+  </div>`;
 }
 function renderSpots() {
   const box = document.getElementById('spotlist');
-  if (!DB.spots.length) {
+  if (!box) return;
+  const priv = DB.spots, fam = DB.fspots;
+  if (!priv.length && !fam.length) {
     box.innerHTML = '<div class="empty"><div class="disp">No spots yet</div>Add your first storage spot above — a shelf, a drawer, a box.</div>';
     return;
   }
-  box.innerHTML = DB.spots.map(s => {
-    const n = DB.items.filter(i => i.spotId === s.id).length;
-    return `<div class="spotcard">
-      <div><div class="n">${esc(s.name)}</div>
-      <div class="c">${s.code}</div>
-      <div class="count">${n} item${n === 1 ? '' : 's'}</div></div>
-      <button class="mini" onclick="showLabel('${s.id}')">QR label</button>
-    </div>`;
-  }).join('');
+  let html = '';
+  if (household && fam.length) {
+    html += `<div class="sectionhead"><span class="dot"></span>${esc(household.name)} — family spots</div>` +
+      fam.map(spotCard).join('');
+  }
+  if (priv.length) {
+    html += `<div class="sectionhead"><span class="dot priv"></span>My private spots</div>` +
+      priv.map(spotCard).join('');
+  }
+  box.innerHTML = html;
 }
 function refreshSpotSelect() {
   const sel = document.getElementById('f-spot');
+  if (!sel) return;
   const cur = sel.value;
+  const list = (household && saveScope) ? DB.fspots : DB.spots;
   sel.innerHTML = '<option value="">— choose an existing spot —</option>' +
-    DB.spots.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    list.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 document.getElementById('f-spot').addEventListener('change', e => {
@@ -426,7 +625,7 @@ document.getElementById('f-newspot').addEventListener('input', e => {
 
 /* ================= QR label ================= */
 function showLabel(id) {
-  const s = DB.spots.find(x => x.id === id); if (!s) return;
+  const s = allSpots().find(x => x.id === id); if (!s) return;
   document.getElementById('lbl-name').textContent = s.name;
   document.getElementById('lbl-code').textContent = s.code;
   const holder = document.getElementById('lbl-qr'); holder.innerHTML = '';
@@ -447,10 +646,10 @@ document.getElementById('scanfile').addEventListener('change', e => {
     const code = jsQR(d.data, c.width, c.height);
     if (code && code.data.startsWith('TOOLCRIB:')) {
       const sc2 = code.data.replace('TOOLCRIB:', '');
-      const spot = DB.spots.find(s => s.code === sc2);
+      const spot = allSpots().find(s => s.code === sc2);
       if (spot) {
         document.getElementById('q').value = '';
-        renderResults(DB.items.filter(i => i.spotId === spot.id),
+        renderResults(allItems().filter(i => i.spotId === spot.id),
           `Inside “${spot.name}” (${spot.code})`);
         go('find'); return;
       }
@@ -494,44 +693,49 @@ function compress(file) {
 async function saveItem() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { alert('Give the item a name.'); return; }
+  const fam = !!(household && saveScope);
   let spotId = document.getElementById('f-spot').value;
   const ns = document.getElementById('f-newspot').value.trim();
   if (ns) {
-    const existing = DB.spots.find(s => s.name.toLowerCase() === ns.toLowerCase());
-    spotId = existing ? existing.id : addSpot(ns).id;
+    const pool = fam ? DB.fspots : DB.spots;
+    const existing = pool.find(s => s.name.toLowerCase() === ns.toLowerCase());
+    spotId = existing ? existing.id : addSpot(ns, fam).id;
   }
   if (!spotId) { alert('Tell ToolCrib where the item is kept: choose an existing spot from the list, or type a new one.'); return; }
   const item = {
     id: uid(), name, spotId,
     notes: document.getElementById('f-notes').value.trim(),
-    photoItem: photoItem || null, photoSpot: photoSpot || null, at: Date.now()
+    photoItem: photoItem || null, photoSpot: photoSpot || null, at: Date.now(),
+    addedBy: myName(), addedByUid: user.uid
   };
   try {
-    await db.collection('users').doc(user.uid).collection('items').doc(item.id).set(item);
+    const target = fam ? db.collection('households').doc(household.id).collection('items')
+                       : db.collection('users').doc(user.uid).collection('items');
+    await target.doc(item.id).set(item);
   } catch (e) {
     alert('Could not save: ' + e.message + '\nIf this mentions "permissions", check your Firestore security rules.');
     return;
   }
-  /* reset form */
   ['f-name', 'f-notes', 'f-newspot'].forEach(i => document.getElementById(i).value = '');
   document.getElementById('f-spot').value = '';
   photoItem = photoSpot = null;
   document.getElementById('pb-item').outerHTML = '<div class="photobtn" id="pb-item" onclick="document.getElementById(\'f-photoitem\').click()"><span>&#128247; The item</span></div>';
   document.getElementById('pb-spot').outerHTML = '<div class="photobtn" id="pb-spot" onclick="document.getElementById(\'f-photospot\').click()"><span>&#128247; The spot</span></div>';
+  document.getElementById('savedmsg').textContent = fam ? 'Saved to the family crib \u2014 everyone can find it now.' : 'Saved to your private crib.';
   const m = document.getElementById('savedmsg');
-  m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 2200);
+  m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 2400);
   refreshSpotSelect();
 }
 
 /* ================= search ================= */
-function spotOf(i) { return DB.spots.find(s => s.id === i.spotId); }
+function spotOf(i) { return allSpots().find(s => s.id === i.spotId); }
 function esc(t) { return (t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 document.getElementById('q').addEventListener('input', e => doSearch(e.target.value));
 function doSearch(q) {
   q = (q || '').trim().toLowerCase();
   if (!q) { renderHome(); return; }
-  const hits = DB.items.filter(i => {
+  const hits = allItems().filter(i => {
     const sp = spotOf(i);
     return i.name.toLowerCase().includes(q) ||
            (i.notes || '').toLowerCase().includes(q) ||
@@ -543,7 +747,7 @@ function doSearch(q) {
 /* welcome / home state for the Find tab */
 function renderHome() {
   const r = document.getElementById('results');
-  if (DB.items.length) { r.innerHTML = ''; return; }
+  if (allItems().length) { r.innerHTML = ''; return; }
   r.innerHTML = `<div class="welcome">
     <div class="disp">Welcome to ToolCrib! &#128075;</div>
     <p>ToolCrib is your memory for where things are kept.<br>It works in two steps:</p>
@@ -565,16 +769,18 @@ function prefillAdd() {
 
 function itemCard(i) {
   const sp = spotOf(i);
-  return `<div class="tag">
+  const mine = i.addedByUid === (user && user.uid);
+  return `<div class="tag${i._fam ? ' fam' : ''}">
     <div class="row">
       ${i.photoItem ? `<img src="${i.photoItem}" alt="">` : ''}
       <div style="flex:1">
         <p class="name">${esc(i.name)}</p>
         <div class="loc">&#128204; <b>${sp ? esc(sp.name) : 'Unknown spot'}</b>${sp ? ` <span style="color:var(--steel)">· ${sp.code}</span>` : ''}</div>
         ${i.notes ? `<div class="notes">${esc(i.notes)}</div>` : ''}
+        ${i._fam ? `<div class="by">&#127968; ${esc(household ? household.name : 'Family')} · recorded by ${mine ? 'you' : esc(i.addedBy || 'a member')}</div>` : ''}
         <div class="actions">
           ${i.photoSpot ? `<a onclick="toggleSpotPhoto('${i.id}')">Show the spot</a>` : ''}
-          <a class="del" onclick="delItem('${i.id}')">Delete</a>
+          <a class="del" onclick="delItem('${i.id}', ${i._fam})">Delete</a>
         </div>
       </div>
     </div>
@@ -589,25 +795,30 @@ function renderResults(list, headline) {
   const r = document.getElementById('results');
   if (!list.length) {
     r.innerHTML = `<div class="empty"><div class="disp">Not recorded yet</div>
-      ToolCrib can only find things you have recorded first — and there is no record matching this yet.<br>
+      ToolCrib can only find things that have been recorded first — and there is no record matching this yet.<br>
       If you know where it is right now, record it once and you will never have to search for it again.
       <br><button class="primary" style="margin-top:16px" onclick="prefillAdd()">&#10133; Record it now</button></div>`;
     return;
   }
   r.innerHTML = (headline ? `<div class="hint">${esc(headline)}</div>` : '') + list.map(itemCard).join('');
 }
-async function delItem(id) {
+async function delItem(id, fam) {
   if (!confirm('Delete this item?')) return;
-  try { await db.collection('users').doc(user.uid).collection('items').doc(id).delete(); }
-  catch (e) { alert('Could not delete: ' + e.message); }
+  try {
+    const target = fam ? db.collection('households').doc(household.id).collection('items')
+                       : db.collection('users').doc(user.uid).collection('items');
+    await target.doc(id).delete();
+  } catch (e) { alert('Could not delete: ' + e.message); }
 }
 
 /* ================= all items ================= */
 function renderAll() {
+  const list = allItems();
   document.getElementById('allcount').textContent =
-    DB.items.length ? `${DB.items.length} item${DB.items.length === 1 ? '' : 's'} in your account` : '';
+    list.length ? `${list.length} item${list.length === 1 ? '' : 's'}` +
+      (household ? ` (yours + ${esc(household.name)})` : ' in your account') : '';
   const box = document.getElementById('alllist');
-  box.innerHTML = DB.items.length ? DB.items.map(itemCard).join('') :
+  box.innerHTML = list.length ? list.map(itemCard).join('') :
     '<div class="empty"><div class="disp">Your crib is empty</div>Add your first item from the Add tab.</div>';
 }
 
@@ -631,7 +842,7 @@ function importData(e) {
       d.spots.forEach(sp => batch.set(base.collection('spots').doc(sp.id), clean(sp)));
       d.items.forEach(it => batch.set(base.collection('items').doc(it.id), clean(it)));
       await batch.commit();
-      alert('Backup restored: ' + d.items.length + ' items, ' + d.spots.length + ' spots.');
+      alert('Backup restored into your private crib: ' + d.items.length + ' items, ' + d.spots.length + ' spots.');
     } catch (err) { alert('That file is not a valid ToolCrib backup.'); }
   };
   r.readAsText(f); e.target.value = '';
